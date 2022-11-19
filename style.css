@@ -15,10 +15,20 @@ body {
    padding: 2%; 
    text-decoration: none;
 }
+#canvasContainer {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    justify-content: center;
+    display: block;
+    margin: auto;
+    width: 100%;
+    height: 100%;
+}
 canvas {
     position: absolute;
-    top:0;
-    bottom: 0;
+    top:0%;
+    bottom: 15%;
     left: 0;
     right: 0;
     margin: auto;
@@ -29,10 +39,9 @@ canvas {
     position: absolute;
     justify-content: center;
     display: block;
-    /* background-color: red; */
     margin: auto;
     width: 100%;
-    top: 25%;
+    padding-top: 5%;
 }
 #goFirst{
     font-family: 'Sono', sans-serif;
