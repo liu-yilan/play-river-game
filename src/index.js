@@ -61,8 +61,6 @@ function drawBoard() {
     drawGameGrid();
 }
 
-
-
 function delineateInitStones(){
     for(let i = 0; i < canvas.width; i += cellWidth) {
         wStones.push(new Stone(i, canvas.height - cellHeight, "white"));
@@ -174,7 +172,9 @@ let mouse_move = function(event) {
 
         wStones[selectedWhiteStoneIndex].x = gameGrid[closestDestGridIndex].centerx;
         wStones[selectedWhiteStoneIndex].y = gameGrid[closestDestGridIndex].centery; 
-        wStones[selectedWhiteStoneIndex].gridIndex = findGridIndexOfStone(wStones[selectedWhiteStoneIndex].x, wStones[selectedWhiteStoneIndex].y);
+        wStones[selectedWhiteStoneIndex].gridIndex = 
+            findGridIndexOfStone(wStones[selectedWhiteStoneIndex].x, 
+                wStones[selectedWhiteStoneIndex].y);
         gameGrid[closestDestGridIndex].stone = true;
 
         drawNewStones();
@@ -566,11 +566,6 @@ function animate() {
             ctx.fillText(endText, (canvas.width / 2) - (endTextWidth / 2), canvas.height / 2);
         }, 1200);
     }
-}
-
-function turnScreen(){
-    ctx.clearRect(0,0,canvas.width, canvas.height);
-    ctx.fillStyle = "#FFF3C9";
 }
 
 function startGameFirst(){
