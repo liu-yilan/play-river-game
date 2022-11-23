@@ -1,14 +1,16 @@
+import { Cell, Stone } from "./objects.js";
+
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 const COLS = 3;
 const ROWS = 12; // has to be even number
-
 canvas.width = window.innerWidth * 0.17;
 canvas.height = window.innerHeight * 0.75;
 
 const riverHeight = canvas.height * 0.1;
 const cellWidth = canvas.width / COLS;
 const cellHeight = (canvas.height - riverHeight) / ROWS; 
+
 const stoneRadius = Math.min((cellWidth / 2) * 0.4, (cellHeight / 2) * 0.75);
 
 const goFirstButton = document.getElementById('goFirst');
@@ -17,10 +19,9 @@ const goSecondButton = document.getElementById('goSecond');
 goFirstButton.addEventListener('click', startGameFirst);
 goSecondButton.addEventListener('click', startGameSecond);
 
-let gameOver = false; // I never use this lol
 let gameGrid = [];
-let whiteStones = [];
-let blackStones = [];
+let wStones = [];
+let bStones = [];
 let moveCount = 0; 
 let whiteTurn = true;
 let distance = [];
@@ -32,23 +33,6 @@ function drawBackground() {
     }
 }
 
-class Cell {
-    constructor(x, y){
-        this.x = x;
-        this.y = y;
-        this.width = cellWidth;
-        this.height = cellHeight;
-        this.centerx = x + (cellWidth / 2);
-        this.centery = y + (cellHeight / 2);
-        this.stone = false;
-    }
-    draw(){
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = "#b58326";
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
-}
 function delineateGrid(){
     var rowIndex = 0; 
     for (let y = 0; y < canvas.height - riverHeight; y += cellHeight) {
@@ -77,33 +61,13 @@ function drawBoard() {
     drawGameGrid();
 }
 
-class Stone {
-    constructor(x, y, color){
-        this.x = x + (cellWidth / 2); //x-coor of circle's center
-        this.y = y + (cellHeight / 2); //y-coor of circle's center
-        this.width = cellWidth;
-        this.height = cellHeight;
-        this.color = color;
-        this.availableMoves = ROWS - 2;
-        this.gridIndex = findGridIndexOfStone(this.x, this.y);
-        this.advanceMax = ROWS - 2; 
-        this.retreatMax = 0; 
-    }
-    draw(){
-        ctx.beginPath(); 
-        ctx.arc(this.x, this.y, stoneRadius, 0, 2 * Math.PI, false);
-        ctx.strokeStyle = this.color;
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.stroke();
-    }
-}
+
 
 function delineateInitStones(){
     for(let i = 0; i < canvas.width; i += cellWidth) {
-        whiteStones.push(new Stone(i, canvas.height - cellHeight, "white"));
+        wStones.push(new Stone(i, canvas.height - cellHeight, "white"));
         console.log(canvas.height - cellHeight);
-        blackStones.push(new Stone(i, 0, "black"));
+        bStones.push(new Stone(i, 0, "black"));
     }
 }
 
@@ -111,8 +75,8 @@ function drawInitStones() {
     drawBoard();
     delineateInitStones(); 
     for(let i = 0; i < COLS; i++) {
-        whiteStones[i].draw(); 
-        blackStones[i].draw();
+        wStones[i].draw(); 
+        bStones[i].draw();
     }
 
     // hard-coding the stoneStatus of initially occupied grids 
@@ -134,8 +98,8 @@ let destMouseY;
 
 function mouseInWhiteStone(mouse_xcoor, mouse_ycoor, indexOfStone) {
     if(Math.sqrt(
-        Math.pow(mouse_xcoor - whiteStones[indexOfStone].x, 2) + 
-        Math.pow(mouse_ycoor - whiteStones[indexOfStone].y, 2)
+        Math.pow(mouse_xcoor - wStones[indexOfStone].x, 2) + 
+        Math.pow(mouse_ycoor - wStones[indexOfStone].y, 2)
         ) <= stoneRadius) {
         return true; 
     }
@@ -151,7 +115,7 @@ let mouse_down = function(event) {
 
     //iterate over every piece we have 
     //this initialMouseX and initialMouseY are the coordinates of our mouse
-    for (let i = 0; i < whiteStones.length; i++) {
+    for (let i = 0; i < wStones.length; i++) {
         if (mouseInWhiteStone(initialMouseX, initialMouseY, i)) {
             selectedWhiteStoneIndex = i;
             isDragging = true; 
@@ -208,9 +172,9 @@ let mouse_move = function(event) {
         console.log("closestDestGridIndex: " + findClosestDestGrid());
         let closestDestGridIndex = findClosestDestGrid();
 
-        whiteStones[selectedWhiteStoneIndex].x = gameGrid[closestDestGridIndex].centerx;
-        whiteStones[selectedWhiteStoneIndex].y = gameGrid[closestDestGridIndex].centery; 
-        whiteStones[selectedWhiteStoneIndex].gridIndex = findGridIndexOfStone(whiteStones[selectedWhiteStoneIndex].x, whiteStones[selectedWhiteStoneIndex].y);
+        wStones[selectedWhiteStoneIndex].x = gameGrid[closestDestGridIndex].centerx;
+        wStones[selectedWhiteStoneIndex].y = gameGrid[closestDestGridIndex].centery; 
+        wStones[selectedWhiteStoneIndex].gridIndex = findGridIndexOfStone(wStones[selectedWhiteStoneIndex].x, wStones[selectedWhiteStoneIndex].y);
         gameGrid[closestDestGridIndex].stone = true;
 
         drawNewStones();
@@ -227,8 +191,8 @@ function drawNewStones() {
     }
 
     for(let i = 0; i < COLS; i++) {
-        whiteStones[i].draw(); 
-        blackStones[i].draw();
+        wStones[i].draw(); 
+        bStones[i].draw();
     }
 }
 
@@ -259,7 +223,7 @@ function findClosestDestGrid() {
         }
     }
     console.log("occGridIndex: " + occGridIndex);
-    whiteStones[selectedWhiteStoneIndex].availableMoves = (ROWS - (Math.floor(occGridIndex / COLS) + 1)) - 1;
+    wStones[selectedWhiteStoneIndex].availableMoves = (ROWS - (Math.floor(occGridIndex / COLS) + 1)) - 1;
 
     if(closestDestGridIndex <= occGridIndex) {
         closestDestGridIndex = occGridIndex + COLS;
@@ -287,9 +251,9 @@ function test() {
         console.log("gameGrid[" + i + "].stone: " + gameGrid[i].stone);
     }
 
-    for(let j = 0; j < whiteStones.length; j++) {
-        console.log("whiteStones[" + j + "].gridIndex: " + whiteStones[j].gridIndex);
-        console.log("blackStones[" + j + "].gridIndex: " + blackStones[j].gridIndex);
+    for(let j = 0; j < wStones.length; j++) {
+        console.log("wStones[" + j + "].gridIndex: " + wStones[j].gridIndex);
+        console.log("bStones[" + j + "].gridIndex: " + bStones[j].gridIndex);
     }
 }
 
@@ -308,21 +272,21 @@ function findGridIndexOfStone(stoneX, stoneY) {
 
 function updateDistBetweenStones() {
     for(let i = 0; i < COLS; i++) {
-        distance[i] = whiteStones[i].gridIndex - blackStones[i].gridIndex;
+        distance[i] = wStones[i].gridIndex - bStones[i].gridIndex;
     }
 }
 
 function setAdvanceMaxOfStones() {
     for(let i = 0; i < COLS; i++) {
-        blackStones[i].advanceMax = distance[i] - COLS;
-        whiteStones[i].advanceMax = distance[i] - COLS;
+        bStones[i].advanceMax = distance[i] - COLS;
+        wStones[i].advanceMax = distance[i] - COLS;
     }
 }
 
 function setRetreatMaxOfStones() {
     for(let i = 0; i < COLS; i++) {
-        blackStones[i].retreatMax = -1 * (Math.floor(blackStones[i].gridIndex / COLS));
-        whiteStones[i].retreatMax = -1 * (Math.floor((gameGrid.length - whiteStones[i].gridIndex - 1) / COLS));
+        bStones[i].retreatMax = -1 * (Math.floor(bStones[i].gridIndex / COLS));
+        wStones[i].retreatMax = 1 + (wStones[i].gridIndex - ((gameGrid.length - 1) - (COLS - (i + 1)))) / 3;
     }
 }
 
@@ -333,7 +297,7 @@ function randNumber(min, max) {
 function checkForBlackLoss() {
     let tally = 0;
     for(let i = 0; i < COLS; i++) {
-        if((blackStones[i].retreatMax == 0) && (blackStones[i].advanceMax == 0)) {
+        if((bStones[i].retreatMax == 0) && (bStones[i].advanceMax == 0)) {
             tally++;
         }
     }
@@ -348,7 +312,7 @@ function checkForBlackLoss() {
 function checkForWhiteLoss() {
     let tally = 0;
     for(let i = 0; i < COLS; i++) {
-        if((whiteStones[i].retreatMax == 0) && (whiteStones[i].advanceMax == 0)) {
+        if((wStones[i].retreatMax == 0) && (wStones[i].advanceMax == 0)) {
             tally++;
         }
     }
@@ -366,17 +330,17 @@ function updateGameGrid() {
         gameGrid[i].stone = false; 
     }
     for(let j = 0; j < COLS; j++) {
-        gameGrid[whiteStones[j].gridIndex].stone = true;
-        gameGrid[blackStones[j].gridIndex].stone = true;
+        gameGrid[wStones[j].gridIndex].stone = true;
+        gameGrid[bStones[j].gridIndex].stone = true;
     }
 }
 
 function updateBStoneY(stoneInd, newStoneGridInd) {
-    blackStones[stoneInd].y = gameGrid[newStoneGridInd].centery;
+    bStones[stoneInd].y = gameGrid[newStoneGridInd].centery;
 }
 
 function updateBStoneGridInd(stoneInd, gridsToMove){
-    blackStones[stoneInd].gridIndex += gridsToMove;
+    bStones[stoneInd].gridIndex += gridsToMove;
 }
 
 function isBadMove(move, stoneInd){
@@ -427,7 +391,7 @@ function setBNextMove() {
         }
 
         updateBStoneGridInd(selectedInd, gridsToMove);
-        updateBStoneY(selectedInd, blackStones[selectedInd].gridIndex);
+        updateBStoneY(selectedInd, bStones[selectedInd].gridIndex);
     }
     else {
         for(let j = 0; j < COLS; j++) {
@@ -482,8 +446,8 @@ function setBNextMove() {
                 gridsToCover += COLS;
             }
             
-            blackStones[randInd].gridIndex += gridsToCover;
-            updateBStoneY(randInd, blackStones[randInd].gridIndex);
+            bStones[randInd].gridIndex += gridsToCover;
+            updateBStoneY(randInd, bStones[randInd].gridIndex);
         }
         else if (zFlag == COLS - 1) { 
             let targetInd = null;
@@ -494,36 +458,36 @@ function setBNextMove() {
                 }
             }
 
-            blackStones[targetInd].gridIndex += distance[targetInd] - COLS;
-            blackStones[targetInd].y = gameGrid[blackStones[targetInd].gridIndex].centery;
+            bStones[targetInd].gridIndex += distance[targetInd] - COLS;
+            bStones[targetInd].y = gameGrid[bStones[targetInd].gridIndex].centery;
         }
         else if (zFlag == COLS) {
             for(let i = 0; i < COLS; i++) {
-                if(blackStones[i].retreatMax != 0) {
-                    blackStones[i].gridIndex -= COLS;
-                    blackStones[i].y = gameGrid[blackStones[i].gridIndex].centery;
+                if(bStones[i].retreatMax != 0) {
+                    bStones[i].gridIndex -= COLS;
+                    bStones[i].y = gameGrid[bStones[i].gridIndex].centery;
                     break;
                 }
             }
         }
         else {    
             if(distance[0] == distance[1]){
-                blackStones[2].gridIndex += blackStones[2].advanceMax; 
-                updateBStoneY(2, blackStones[2].gridIndex);
+                bStones[2].gridIndex += bStones[2].advanceMax; 
+                updateBStoneY(2, bStones[2].gridIndex);
             }
             else if(distance[0] == distance[2]){
-                blackStones[1].gridIndex += blackStones[1].advanceMax; 
-                updateBStoneY(1, blackStones[1].gridIndex);
+                bStones[1].gridIndex += bStones[1].advanceMax; 
+                updateBStoneY(1, bStones[1].gridIndex);
             }
             else if(distance[1] == distance[3]){
-                blackStones[0].gridIndex += blackStones[0].advanceMax; 
-                updateBStoneY(0, blackStones[0].gridIndex);
+                bStones[0].gridIndex += bStones[0].advanceMax; 
+                updateBStoneY(0, bStones[0].gridIndex);
             }
             else {
                 let randBlackStoneInd = Math.round(Math.random() * (COLS - 1));
 
-                let gridsToCover = randNumber(blackStones[randBlackStoneInd].advanceMax, 
-                                              blackStones[randBlackStoneInd].retreatMax);
+                let gridsToCover = randNumber(bStones[randBlackStoneInd].advanceMax, 
+                                              bStones[randBlackStoneInd].retreatMax);
                 
                 let adjGridsToCover = Math.round(gridsToCover / COLS) * COLS;
                 console.log("adjGridsToCover: " + adjGridsToCover);
@@ -534,21 +498,21 @@ function setBNextMove() {
                 while(isBadMove(adjGridsToCover, randBlackStoneInd)) {
                     randBlackStoneInd = Math.round(Math.random() * (COLS - 1));
 
-                    gridsToCover = randNumber(blackStones[randBlackStoneInd].advanceMax, 
-                                              blackStones[randBlackStoneInd].retreatMax);
+                    gridsToCover = randNumber(bStones[randBlackStoneInd].advanceMax, 
+                                              bStones[randBlackStoneInd].retreatMax);
                 
                     adjGridsToCover = Math.round(gridsToCover / COLS) * COLS;
                 }
 
-                blackStones[randBlackStoneInd].gridIndex += adjGridsToCover;
-                updateBStoneY(randBlackStoneInd, blackStones[randBlackStoneInd].gridIndex);
+                bStones[randBlackStoneInd].gridIndex += adjGridsToCover;
+                updateBStoneY(randBlackStoneInd, bStones[randBlackStoneInd].gridIndex);
             }
         }
     }
 }
 
 function animate() {
-    console.log("whiteTurn: " + whiteTurn)
+    // console.log("whiteTurn: " + whiteTurn)
     updateDistBetweenStones();
     if(whiteTurn) {
         canvas.addEventListener('mousedown', mouse_down);
@@ -556,7 +520,7 @@ function animate() {
         canvas.addEventListener('mouseout', mouse_out);
         canvas.addEventListener('mousemove', mouse_move); 
         window.addEventListener('mouseup', mouse_up);
-        console.log("mouse is on")
+        // console.log("mouse is on")
     }
     else { 
         canvas.removeEventListener('mousedown', mouse_down);
@@ -564,7 +528,7 @@ function animate() {
         canvas.removeEventListener('mouseout', mouse_out);
         canvas.removeEventListener('mousemove', mouse_move);
         window.removeEventListener('mouseup', mouse_up);
-        console.log("mouse is off")
+        // console.log("mouse is off")
         
         setBNextMove();
 
@@ -623,3 +587,5 @@ function startGameSecond(){
     drawInitStones();
     animate();
 }
+
+export { cellWidth, cellHeight, ctx, ROWS, findGridIndexOfStone, stoneRadius };
