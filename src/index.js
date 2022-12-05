@@ -286,7 +286,10 @@ function setAdvanceMaxOfStones() {
 function setRetreatMaxOfStones() {
     for(let i = 0; i < COLS; i++) {
         bStones[i].retreatMax = -1 * (Math.floor(bStones[i].gridIndex / COLS));
-        wStones[i].retreatMax = 1 + (wStones[i].gridIndex - ((gameGrid.length - 1) - (COLS - (i + 1)))) / 3;
+        wStones[i].retreatMax = (wStones[i].gridIndex - ((gameGrid.length - 1) - (COLS - (i + 1)))) / 3;
+        for(let i = 0; i < COLS; i++){
+            console.log("wStones[" + i + "].retreatMax: " + wStones[i].retreatMax);
+        }
     }
 }
 
